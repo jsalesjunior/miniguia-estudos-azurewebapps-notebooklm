@@ -23,6 +23,9 @@ Prompt1: preciso de um guia completo com os principais pontos sobre o azure web 
 
 Prompt2: preciso que vc extrai mais informações das fontes incluídas, e exemplos exemplos práticos de uso, vantegens e desvantagens em relação a outros modelos
 
+Prompt3: baseado no material crie um laboratório de como subir uma aplicação no webapp
+
+------------
 ------------
 - CONTEÚDO
 -----------
@@ -110,13 +113,15 @@ preciso que vc extrai mais informações das fontes incluídas, e exemplos exemp
 
 Isolamento e Segurança Elevada: Para cargas de trabalho que exigem isolamento de rede e hardware dedicado, o Azure oferece o nível Isolado (Isolated), executado em um App Service Environment (ASE)
 . Isso garante que sua aplicação seja a única rodando naquele hardware físico, ideal para cenários com requisitos rigorosos de conformidade
-.
-Gerenciamento de Identidade: O serviço utiliza identidade federada, o que significa que provedores como Google, Facebook ou Microsoft gerenciam o fluxo de autenticação, e o App Service recebe o token resultante para autorização, minimizando a escrita de código de segurança
-.
+
+Gerenciamento de Identidade:
+
+O serviço utiliza identidade federada, o que significa que provedores como Google, Facebook ou Microsoft gerenciam o fluxo de autenticação, e o App Service recebe o token resultante para autorização, minimizando a escrita de código de segurança
+
 Conectividade Híbrida: Através do recurso Hybrid Connections, é possível fazer chamadas de saída para endpoints TCP específicos (como um banco de dados SQL no local/on-premises) sem a necessidade de configurar VPNs complexas, usando apenas a porta 443 para saída
-.
+
 CORS (Cross-Origin Resource Sharing): O App Service possui suporte nativo para configurar CORS, permitindo especificar quais domínios externos podem fazer solicitações à sua API
-.
+
 
 2. Exemplos Práticos de Uso
    
@@ -164,3 +169,114 @@ Custo Mínimo: Mesmo em planos dedicados onde não há tráfego, você paga pelo
 Escala menos granular: Enquanto o App Service escala instâncias de servidor, as Functions escalam eventos individuais, o que pode ser mais eficiente para tarefas esporádicas
 .
 
+-----------------
+
+Laboratório: Implantação de Aplicação no Azure Web App
+
+Este laboratório guiará você na criação de um Plano do Serviço de Aplicativo, na criação de um Web App e na implantação de uma aplicação simples utilizando o Azure CLI e o Portal.
+
+----------------------
+
+Pré-requisitos
+
+Uma assinatura ativa do Azure
+
+Azure CLI instalado localmente ou uso do Azure Cloud Shell
+
+Git instalado (para clonar o repositório de exemplo)
+
+
+--------------------------------------------------------------------------------
+Parte 1: Criação da Infraestrutura via Azure CLI
+
+Antes de subir o código, é necessário preparar o ambiente que hospedará sua aplicação.
+
+1. Criar um Grupo de Recursos
+
+O grupo de recursos organiza todos os componentes do seu laboratório.
+
+
+az group create --name "LAB-WEBAPP-RG" --location "eastus"
+
+
+2. Criar um Plano do Serviço de Aplicativo (App Service Plan)
+
+O plano define os recursos computacionais (CPU e Memória). Para este laboratório, usaremos o nível B1 (Básico), que permite testes e escala limitada
+
+az appservice plan create --name "MeuPlanoApp" --resource-group "LAB-WEBAPP-RG" --sku B1 --is-linux
+
+Nota: O parâmetro --is-linux define que o plano hospedará aplicações em Linux
+
+
+3. Criar o Aplicativo Web (Web App)
+
+O nome do aplicativo deve ser globalmente exclusivo, pois fará parte da URL nomedoapp.azurewebsites.net
+
+az webapp create --name "SeuNomeUnicoApp" --resource-group "LAB-WEBAPP-RG" --plan "MeuPlanoApp" --runtime "DOTNET|6.0"
+
+--------------------------------------------------------------------------------
+
+Parte 2: Implantação da Aplicação (Dois Métodos)
+
+Método A: Implantação de Código Local (Simples)
+
+Utilizaremos o comando az webapp up, que automatiza a criação (se necessário) e o upload do código
+
+Crie uma pasta local e um arquivo index.html simples.
+
+No terminal, dentro da pasta, execute:
+
+O Azure fará o upload e abrirá o navegador com sua página "Hello World"
+
+Método B: Implantação via Contêiner Personalizado (Avançado)
+
+Se você preferir usar Docker, siga estes passos baseados nas fontes:
+
+Criar um Registro de Contêiner (ACR):
+
+Enviar a Imagem para o ACR: (Assumindo que você tem um Dockerfile local)
+
+Configurar o Web App para usar a Imagem:
+
+--------------------------------------------------------------------------------
+
+Parte 3: Configuração e Verificação
+
+1. Adicionar Configurações de Aplicativo (Variáveis de Ambiente)
+
+As configurações de aplicativo são passadas como variáveis de ambiente para o seu código
+
+az webapp config appsettings set --name "SeuNomeUnicoApp" --resource-group "LAB-WEBAPP-RG" --settings "MINHA_VARIAVEL=ValorDeTeste"
+
+2. Verificar o Status e Logs
+
+Para visualizar o que está acontecendo na sua aplicação em tempo real:
+
+No Portal, acesse o seu Web App e vá em Log Stream
+
+Via CLI:
+
+3. Teste de Acesso
+
+Acesse a URL gerada no navegador: https://SeuNomeUnicoApp.azurewebsites.net
+
+
+--------------------------------------------------------------------------------
+
+Parte 4: Limpeza de Recursos
+
+Sempre remova o grupo de recursos ao finalizar para evitar custos desnecessários
+
+az group delete --name "LAB-WEBAPP-RG" --yes --no-wait
+
+--------------------------------------------------------------------------------
+
+Dicas do Especialista (Baseadas nas Fontes):
+
+Slots de Implantação: Para ambientes de produção, crie um slot chamado "staging" para testar antes de mover para o slot principal ("swap") sem tempo de inatividade
+
+
+Segurança: Use Identidades Gerenciadas para permitir que seu Web App acesse outros serviços (como o Key Vault) sem precisar armazenar senhas no código
+
+
+Escalabilidade: Configure regras de Autoscale baseadas no uso de CPU para que o Azure adicione instâncias automaticamente durante picos de tráfego
