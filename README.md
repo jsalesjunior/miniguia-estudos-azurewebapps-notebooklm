@@ -1,5 +1,5 @@
 # miniguia-estudos-azurewebapps-notebooklm
-Aguia de estudos sobre AzureDevops utilizando NotebookLM
+Aguia de estudos sobre AZURE APP SERVICE utilizando NotebookLM
 
 
 - Como eu construi o material:
